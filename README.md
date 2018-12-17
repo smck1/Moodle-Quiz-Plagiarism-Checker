@@ -27,16 +27,19 @@ First response at index 9
 
 q 1:
 This answer is similar to the one below
+
 This answer is similar to the one above
 \---
 
 q 4:
 This answer is similar to the one below
+
 This answer is similar to the one above
 \---
 
 q 10:
 This answer is similar to the one below
+
 This answer is similar to the one above
 
 \-------------------------------------------------
