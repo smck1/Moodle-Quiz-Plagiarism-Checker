@@ -15,24 +15,30 @@ Student1's response is above Student2's, given in the order they are named.
 Mock output is provided below:
 
 \-------------------------------------------------
+
 Flagging students with 2 similar responses.
 Response similarity threshold is set to 0.85
 First response at index 9
+
 \#### Student_name1
 \#### Student_name1
 \#### Student_name2
 \---
+
 q 1:
 This answer is similar to the one below
 This answer is similar to the one above
 \---
+
 q 4:
 This answer is similar to the one below
 This answer is similar to the one above
 \---
+
 q 10:
 This answer is similar to the one below
 This answer is similar to the one above
+
 \-------------------------------------------------
 
 
