@@ -24,6 +24,7 @@ from xlrd import open_workbook, XLRDError
 
 DEFAULT_QT = 2
 DEFAULT_ST = 0.85
+DEFAULT_G = 0
 
 
 
@@ -47,6 +48,8 @@ parser.add_argument('--similarity_threshold', '-st', type=float, help=f'The simi
                     Specified as a floating point value - defaults to {DEFAULT_ST}. \n \
                     For short answer format where many of the same words are expected, set this pretty high, try around 0.8/0.85.\n \
                     For longer questions with varied answers, try lower thresholds (0.5, or experiment a bit)')
+parser.add_argument('--grammode', '-g', type=int, help=f'Set the number of characters to use when tokenising. 0 means split on word boundaries\
+                    - defaults to {DEFAULT_G}. NOTE: skips responses longer than grammode if set. 0 is reccomended.')
 
 
 args = parser.parse_args()
@@ -76,6 +79,14 @@ if not args.similarity_threshold:
 else:
     print (f"Response similarity threshold is set to {args.similarity_threshold}")
     sim_threshold = args.similarity_threshold
+
+
+if not args.grammode:
+    print (f"No sequence size (grammode) specified, default to {DEFAULT_G}")
+    grammode = DEFAULT_G
+else:
+    print (f"Sequence size (grammode) is set to {args.grammode}")
+    grammode= args.grammode
 
 
 
@@ -134,6 +145,7 @@ else:
     question_inds = [x-1+first_response_index for x in questions]
 
 
+c = textdistance.Cosine(qval=grammode)
 
 # For each specified question - compare each student response to all others (pairwise)
 # Flag up students who have args.threshold similar responses.
@@ -143,20 +155,28 @@ for student in values[1:]: # skip the header row
         if student != student2: # avoid comparing the same student at the end
             matches = []
             for q in question_inds:
-                if student[q] != "-": # skip empty questions
-                    if textdistance.cosine.normalized_similarity(student[q], student2[q]) > sim_threshold:
+                if (student[q] != "-") and (len(student[q]) > grammode and(len(student2[q]) > grammode)): # skip empty questions
+                    if c.normalized_similarity(student[q], student2[q]) > sim_threshold:
                         matches.append((q, student[q], student2[q]))
             if len(matches) > threshold:
                 name1 = f"{student[1]} {student[0]}"
                 name2 = f"{student2[1]} {student2[0]}"
-                print (f"#### {name1}\n#### {name2}")
+                print (f"##### {name1}\n##### {name2}")
                 #print (f"Similarity found for students {name1} and {name2}")
                 for m in matches:
-                    print ("---")
-                    print (f"q {m[0]}:")
-                    print (m[1])
-                    print (m[2])
-                print ("\n\n")
+                    print ("---------------------------")
+                    print (f"##q {m[0]}:")
+                    print ("#-" + name1 + "-")
+                    try:
+                        print (m[1])
+                    except UnicodeEncodeError:
+                        print ("ERROR Encoding this string - check source question for funny characters")
+                    print ("\n#-" + name2 + "-")
+                    try:
+                        print (m[2])
+                    except UnicodeEncodeError:
+                        print ("ERROR Encoding this string - check source question for funny characters")
+                print ("\n\n\n")
     count +=1
 
 print ("Operation complete.")
