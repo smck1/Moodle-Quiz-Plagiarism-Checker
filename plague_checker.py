@@ -25,7 +25,7 @@ from xlrd import open_workbook, XLRDError
 DEFAULT_QT = 2
 DEFAULT_ST = 0.85
 DEFAULT_G = 0
-
+DEFAULT_SS = 12
 
 
 parser = argparse.ArgumentParser(description="""
@@ -50,6 +50,9 @@ parser.add_argument('--similarity_threshold', '-st', type=float, help=f'The simi
                     For longer questions with varied answers, try lower thresholds (0.5, or experiment a bit)')
 parser.add_argument('--grammode', '-g', type=int, help=f'Set the number of characters to use when tokenising. 0 means split on word boundaries\
                     - defaults to {DEFAULT_G}. NOTE: skips responses longer than grammode if set. 0 is reccomended.')
+parser.add_argument('--longestsubstr', '-ls', type=int, help=f'Override the similarity mode and use Longest Common Substring n, \
+where n is the number of chars to match in a row - Try around {DEFAULT_SS} or more. Ignores grammod and similarity threshold.')
+
 
 
 args = parser.parse_args()
@@ -73,20 +76,25 @@ else:
     print (f"Flagging students with {args.question_threshold} similar responses.")
     threshold = args.question_threshold
 
-if not args.similarity_threshold:
-    print (f"No similarity threshold specified, default to {DEFAULT_ST}")
-    sim_threshold = DEFAULT_ST
-else:
-    print (f"Response similarity threshold is set to {args.similarity_threshold}")
-    sim_threshold = args.similarity_threshold
+if not args.longestsubstr:
+    # Use Cosine similarity
+    if not args.similarity_threshold:
+        print (f"No similarity threshold specified, default to {DEFAULT_ST}")
+        sim_threshold = DEFAULT_ST
+    else:
+        print (f"Response similarity threshold is set to {args.similarity_threshold}")
+        sim_threshold = args.similarity_threshold
 
 
-if not args.grammode:
-    print (f"No sequence size (grammode) specified, default to {DEFAULT_G}")
-    grammode = DEFAULT_G
-else:
-    print (f"Sequence size (grammode) is set to {args.grammode}")
-    grammode= args.grammode
+    if not args.grammode:
+        print (f"No sequence size (grammode) specified, default to {DEFAULT_G}")
+        grammode = DEFAULT_G
+    else:
+        print (f"Sequence size (grammode) is set to {args.grammode}")
+        grammode= args.grammode
+else: # use longest common substring
+    grammode = 1 ## This will only be used for the response length check
+    print("Ignoring sim threshold and gram size. Measuring longest common substring of size {args.longestsubstr}")
 
 
 
@@ -133,7 +141,7 @@ else:
 
 print ("\n")
 
-# Adjust question response indexes.
+# Adjust question response indices.
 # If the first response is on column 9, then Question 1 is at index 9.
 # 1 is subtracted because Response columns start at 1, not 0.
 
@@ -141,11 +149,14 @@ if questions == False:
     # Handle the case where all questions are considered.
     question_inds = [x for x in range(first_response_index, num_cols)]
 else:
-    # Get the indexes of specified questions.
+    # Get the indices of specified questions.
     question_inds = [x-1+first_response_index for x in questions]
 
 
-c = textdistance.Cosine(qval=grammode)
+if not args.longestsubstr:
+    c = textdistance.Cosine(qval=grammode)
+else:
+    c = textdistance.lcsstr
 
 # For each specified question - compare each student response to all others (pairwise)
 # Flag up students who have args.threshold similar responses.
@@ -156,8 +167,12 @@ for student in values[1:]: # skip the header row
             matches = []
             for q in question_inds:
                 if (student[q] != "-") and (len(student[q]) > grammode and(len(student2[q]) > grammode)): # skip empty questions
-                    if c.normalized_similarity(student[q], student2[q]) > sim_threshold:
-                        matches.append((q, student[q], student2[q]))
+                    if not args.longestsubstr:
+                        if c.normalized_similarity(student[q], student2[q]) > sim_threshold:
+                            matches.append((q, student[q], student2[q]))
+                    else:
+                        if len(c(student[q], student2[q])) > args.longestsubstr:
+                            matches.append((q, student[q], student2[q]))
             if len(matches) > threshold:
                 name1 = f"{student[1]} {student[0]}"
                 name2 = f"{student2[1]} {student2[0]}"

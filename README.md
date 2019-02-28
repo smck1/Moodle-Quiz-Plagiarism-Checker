@@ -11,7 +11,7 @@ It compares the responses of each student with every other student to see if the
 
 ## What does it output?
 The script essentially prints out a list of student pairs, and their responses to the questions which were flagged as similar.
-Student1's response is above Student2's, given in the order they are named. 
+Student1's response is above Student2's, given in the order they are named.
 Mock output is provided below:
 
 \-------------------------------------------------
@@ -63,7 +63,7 @@ Several optional parameters are available to tweak the output if it's being too 
 
 ### Number of Questions (Question Threshold)
 This can be tweaked by passing the argument --question_threshold or -qt followed by an integer. e.g.:
- 
+
 py -3 .\plague_checker.py 'path_to_test.xlsx' -questions 1,2,5,19 -qt 3
 
 The value (3 in the example above) specifies the number of answers which should match between two students before they are flagged for potential plagiarism.
@@ -77,3 +77,10 @@ py -3 .\plague_checker.py 'path_to_test.xlsx' -questions 1,2,5,19 -st 0.7
 
 This sets the similarity threshold to 0.7 before two answers are considered to be a match. How this parameter is set will depend on the type of questions which are asked. Longer questions should use smaller values, while questions in the short answer format should use high thresholds (defaults to 0.85)
 
+
+### Sequence Length (grammode, q-gram setting)
+
+By default the text is broken up on word boundaries, which is the equivalent of a grammode of 0 for the underlying library the tool is built on. However it's possible to set the sequence length to a number of characters, such as 1, which would break the text up at each character, where as 2 would group adjacent characters together. If the grammode is set, responses which are shorter than the sequence length will be ignored to avoid errors. It's recommended to just leave this alone, but it might be worth playing around with small values for short text, and larger values for longer responses.
+
+### Longest Common Substring
+By default the similarity metric used is Cosine similarity. If you would instead like to check for verbatim responses you can set the -ls (--longestsubstr) value, e.g. -ls 10, which would match responses if they contain 10 characters in a row which are identical. This functionality overrides any settings for match sensitivity or gram mode.
