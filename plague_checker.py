@@ -171,8 +171,9 @@ for student in values[1:]: # skip the header row
                         if c.normalized_similarity(student[q], student2[q]) > sim_threshold:
                             matches.append((q, student[q], student2[q]))
                     else:
-                        if len(c(student[q], student2[q])) > args.longestsubstr:
-                            matches.append((q, student[q], student2[q]))
+                        matching_text = c(student[q], student2[q])
+                        if len(matching_text) > args.longestsubstr:
+                            matches.append((q, student[q], student2[q], matching_text))
             if len(matches) > threshold:
                 name1 = f"{student[1]} {student[0]}"
                 name2 = f"{student2[1]} {student2[0]}"
@@ -181,6 +182,8 @@ for student in values[1:]: # skip the header row
                 for m in matches:
                     print ("---------------------------")
                     print (f"##q {m[0]}:")
+                    if args.longestsubstr:
+                        print("*** Matching text: {}\n".format(m[3]))
                     print ("#-" + name1 + "-")
                     try:
                         print (m[1])
