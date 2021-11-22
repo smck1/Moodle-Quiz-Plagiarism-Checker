@@ -52,7 +52,7 @@ The script is written in Python 3 and has two dependencies. Install the dependen
 pip install -r requirements.txt
 
 ### Run the Script
-py -3 .\plague_checker.py 'path_to_test.xlsx' -questions 1,2,5,19
+py -3 .\plague_checker.py 'path_to_test.xlsx' --questions 1,2,5,19
 
 If you want to save it to a file, just add > outfile.txt at the end of the command.
 
@@ -64,7 +64,7 @@ Several optional parameters are available to tweak the output if it's being too 
 ### Number of Questions (Question Threshold)
 This can be tweaked by passing the argument --question_threshold or -qt followed by an integer. e.g.:
 
-py -3 .\plague_checker.py 'path_to_test.xlsx' -questions 1,2,5,19 -qt 3
+py -3 .\plague_checker.py 'path_to_test.xlsx' --questions 1,2,5,19 -qt 3
 
 The value (3 in the example above) specifies the number of answers which should match between two students before they are flagged for potential plagiarism.
 
@@ -73,7 +73,7 @@ This can be modified using the --similarity_threshold or -st argument, with a fl
 Cosine similarity works with values between 0 and 1, where 0 represents no similarity, and 1 represents items which are identical.
 Example usage:
 
-py -3 .\plague_checker.py 'path_to_test.xlsx' -questions 1,2,5,19 -st 0.7
+py -3 .\plague_checker.py 'path_to_test.xlsx' --questions 1,2,5,19 -st 0.7
 
 This sets the similarity threshold to 0.7 before two answers are considered to be a match. How this parameter is set will depend on the type of questions which are asked. Longer questions should use smaller values, while questions in the short answer format should use high thresholds (defaults to 0.85)
 
